@@ -3,24 +3,39 @@ var _ = require('lodash'),
     css = require('css');
 
 
+/**
+ * Build prefix
+ * @param rule
+ * @returns {string}
+ */
 function getPrefix(rule) {
-    if (!rule.parent || rule.parent === 'stylesheet') {
-        return ''
-    }
 
     var prefixes = [];
+
+
+    if (rule.parent) {
+        var parentPrefix = getPrefix(rule.parent);
+
+        if (parentPrefix) {
+            prefixes.push(parentPrefix);
+        }
+    }
 
     if (rule.type !== 'rule') {
         prefixes.push(rule.type);
     }
 
+    if (rule.hasOwnProperty(rule.type) && _.isString(rule[rule.type])) {
+        prefixes.push(rule[rule.type]);
+    }
 
-    prefixes.push(rule.type)
-    var type = rule.parent.type;
+    var result = prefixes.join('-');
 
-    return
+    if (rule.type === 'rule') {
+        result += ' '
+    }
 
-    return rule.parent && rule.parent.type === 'media' ? rule.parent.media + '-' : '';
+    return result;
 }
 
 /**
@@ -35,9 +50,11 @@ function getDeclarationDiffFunction(compare) {
             return declarations;
         }
 
+        // return all declarations which are not inside compare
         return _.chain(declarations)
             .filter(function(declaration){
-                return !compare[selector].hasOwnProperty(declaration.property);
+                return !compare[selector].hasOwnProperty(declaration.property) ||
+                    compare[selector][declaration.property] !==  declaration.value;
             }).value();
     }
 }
@@ -75,9 +92,9 @@ function getGroupedDeclarationDiffFunction(compareFunc) {
 
 function buildCompare(rules) {
     return _.chain(rules)
-//        .filter(function (rule) {
-//            return rule.type && rule.type === 'rule';
-//        })
+        .filter(function (rule) {
+            return rule.type && rule.type === 'rule';
+        })
         .reduce(function(result, rule) {
             var prefix = getPrefix(rule);
             var declarations = _.chain(rule.declarations)
@@ -90,8 +107,8 @@ function buildCompare(rules) {
                 },{})
                 .value();
 
-            _.forEach(rule.selectors,function(selector) {
-                result[prefix+selector] = _.assign(result[prefix+selector] || {}, declarations);
+            _.forEach(rule.selectors,function(selector){
+                result[prefix+selector] = _.assign(result[prefix+selector] || {}, declarations);;
             });
 
             return result;
@@ -117,7 +134,7 @@ function cssdiff() {
     var compare = css.parse(args.shift());
 
 
-    var compareSelectors =
+    var compareSelectors = buildCompare(compare.stylesheet.rules);
 
 
 
@@ -128,7 +145,12 @@ function cssdiff() {
     main.stylesheet.rules = _.chain(main.stylesheet.rules)
         .reduce(function (result, rule) {
             // intersect with empty array when there is no selector e.g. for rule.type === 'comment'
-            var intersection = _.intersection(compareSelectorKeys,rule.selectors || []);
+
+            var prefix = getPrefix(rule);
+            var selectors = _.map(rule.selectors || [],function(selector){
+                return prefix + selector;
+            });
+            var intersection = _.intersection(compareSelectorKeys, selectors);
 
             // no intersection between main stylesheet and compare stylesheet
             if (rule.type !== 'rule' || !intersection.length) {
@@ -153,8 +175,6 @@ function cssdiff() {
 
 
     return css.stringify(main);
-
-
 }
 
 

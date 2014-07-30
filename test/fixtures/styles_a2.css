@@ -1,15 +1,12 @@
-@media print {
-    .visible-print {
-        display: block !important;
-    }
-    table.visible-print {
-        display: table;
-    }
-    tr.visible-print {
-        display: table-row !important;
-    }
-    th.visible-print,
-    td.visible-print {
-        display: table-cell !important;
-    }
+.visible-print {
+    display: block !important;
 }
+
+td.visible-print {
+    color: green;
+}
+
+th.visible-print {
+    display: table-cell !important;
+}
+
