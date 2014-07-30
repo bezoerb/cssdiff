@@ -45,7 +45,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-simple-mocha');
-  grunt.registerTask('test', ['complexity', 'jshint', 'mochacli', 'watch']);
-  grunt.registerTask('ci', ['complexity', 'jshint', 'mochacli']);
+  grunt.registerTask('test', ['complexity', 'jshint', 'simplemocha', 'watch']);
+  grunt.registerTask('ci', ['complexity', 'jshint', 'simplemocha']);
   grunt.registerTask('default', ['test']);
 };
