@@ -40,52 +40,89 @@ function getPrefix(rule) {
 
 /**
  * Generate function that returns declarations for selector which are not in the compare stylesheet
+ * The function returns all declarations for the passed in key.
+ * Only the declarations where property name and value are equal will be returned
  *
  * @param compare
  * @returns {Function}
  */
 function getDeclarationDiffFunction(compare) {
-    return function(selector,declarations) {
-        if (!compare.hasOwnProperty(selector)) {
+    return function(key,declarations) {
+        if (!compare.hasOwnProperty(key)) {
             return declarations;
         }
 
         // return all declarations which are not inside compare
         return _.chain(declarations)
             .filter(function(declaration){
-                return !compare[selector].hasOwnProperty(declaration.property) ||
-                    compare[selector][declaration.property] !==  declaration.value;
+                return !compare[key].hasOwnProperty(declaration.property) ||
+                    compare[key][declaration.property] !==  declaration.value;
             }).value();
     }
 }
 
+/**
+ * Creates function to compare complete rule declaration with `compareFunc`
+ * The returned function returns an array with all selectors for this rule which have remaining style
+ * declarations to keep in the resulting css. These selectors are grouped by the declarations they should keep.
+ * This functionality is needed to split up rules with multiple selectors in multiple rules if applicable
+ *
+ * @example
+ *
+ * // stylesheet a
+ * html,
+ * body,
+ * div {
+ *    margin: 0,
+ *    padding: 0
+ * }
+ *
+ * // stylesheet b
+ * html {
+ *    padding: 0
+ * }
+ *
+ * // result
+ * [{selectors: ['body','div'], declarations: {margin:0, padding:0}},{ selectors: ['html'], declarations: {margin:0} }]
+ *
+ * @param compareFunc
+ * @returns {Function}
+ */
 function getGroupedDeclarationDiffFunction(compareFunc) {
-    return function (rule) {
-        var prefix = getPrefix(rule);
-        var tmp = _.chain(rule.selectors).reduce(function(result,selector){
-            var declarations = compareFunc(prefix+selector,rule.declarations);
-            result.push({
-                selector: selector,
-                declarations: declarations,
-                hash: hash(_.clone(declarations))
-            });
-            return result;
-        },[]).filter(function(entry) {
-            return !!entry.declarations.length
-        }).groupBy(function(entry){
-            return entry.hash;
-        }).reduce(function(result,group) {
-            result.push({
-                declarations: _.first(group).declarations,
-                selectors: _.reduce(group,function(result,entry){
-                    result.push(entry.selector);
-                    return result;
-                },[])
-            });
-            return result;
-        },[]).value();
 
-        return tmp;
+    return function (rule) {
+        // get prefix
+        var prefix = getPrefix(rule);
+        return _.chain(rule.selectors)
+            // compare each selector and create a hash for the declaration object
+            .reduce(function(result,selector){
+                var declarations = compareFunc(prefix+selector,rule.declarations);
+                result.push({
+                    selector: selector,
+                    declarations: declarations,
+                    hash: hash(_.clone(declarations))
+                });
+                return result;
+
+            // strip of selectors with no remaining declarations
+            },[]).filter(function(entry) {
+                return !!entry.declarations.length;
+
+            // group by declaration hash
+            }).groupBy(function(entry){
+                return entry.hash;
+
+            // pack everything together
+            }).reduce(function(result,group) {
+                result.push({
+                    declarations: _.first(group).declarations,
+                    selectors: _.reduce(group,function(result,entry){
+                        result.push(entry.selector);
+                        return result;
+                    },[])
+                });
+                return result;
+            },[]).value();
     }
 }
 
