@@ -59,7 +59,7 @@ describe('cssdiff', function() {
         test('multiple',done);
     });
 
-    it('should correctly diff css with multiple declarations witzh different values', function(done) {
+    it('should correctly strip declarations with just comments', function(done) {
         test('comments',done);
     });
 

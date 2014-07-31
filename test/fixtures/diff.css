@@ -1,4 +1,5 @@
-input[type="radio"],
-input[type="checkbox"] {
-  /* IE8-9 */
+@media (min-width: 768px) {
+  .nav-tabs.nav-justified > li > a {
+    margin-bottom: 0;
+  }
 }

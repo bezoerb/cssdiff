@@ -126,7 +126,12 @@ function getGroupedDeclarationDiffFunction(compareFunc) {
                     },[])
                 });
                 return result;
-            },[]).value();
+            // finally stripm groups where only comments left
+            },[]).filter(function(group){
+                return !!_.filter(group.declarations,function(decl){
+                    return decl.type !== 'comment';
+                }).length;
+            }).value();
     }
 }
 
