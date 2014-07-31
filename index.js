@@ -154,7 +154,12 @@ function buildCompare(rules) {
                     result[prefix+selector] = (result[prefix+selector] || []).concat(declarations);
                 });
             } else if (rule.hasOwnProperty('rules')) {
-                result = _.assign(result,buildCompare(rule.rules));
+                var rules = buildCompare(rule.rules);
+
+                result = _.reduce(rules,function(res,declarations,key) {
+                    res[key] = _.uniq((res[key] || []).concat(declarations));
+                    return res;
+                },result);
             }
 
             return result;
@@ -171,13 +176,15 @@ function compareRules(rules, interectionKeys, groupFunc) {
             var selectors = _.map(rule.selectors || [],function(selector){
                 return prefix + selector;
             });
-            var intersection = _.intersection(interectionKeys, selectors);
+            var intersection = !!_.intersection(interectionKeys, selectors).length;
 
-            var ruleTest = rule.type === 'rule' && !intersection.length;
-            var typeTest = rule.type !== 'rule' && !rule.hasOwnProperty('rules');
+            // rule with no intersection
+            var ruleTest = rule.type === 'rule' && !intersection;
+            // unsuppored rules -> keep as they are
+            var unsupportedRule = rule.type !== 'rule' && !rule.hasOwnProperty('rules');
 
             // no intersection between main stylesheet and compare stylesheet
-            if (ruleTest && typeTest) {
+            if (ruleTest || unsupportedRule) {
                 result.push(rule);
 
                 // intersections found
