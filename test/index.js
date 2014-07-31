@@ -1,5 +1,5 @@
 /* global describe, it, before, grunt */
-var cssdiff = require('..'),
+var stylediff = require('..'),
     fs = require('fs'),
     expect = require('chai').expect,
     assert = require('chai').assert;
@@ -19,7 +19,7 @@ function diff(basename, cb) {
     var css2 = fs.readFileSync('test/fixtures/' + basename + '_2.css','utf8');
 
 
-    cssdiff(css1,css2, function(err,out) {
+    stylediff(css1,css2, function(err,out) {
         if (err) {
             cb(err);
         }
@@ -45,7 +45,7 @@ function getExpected(basename) {
     return stripWhitespace(fs.readFileSync('test/expected/' + basename + '.css','utf8'));
 }
 
-describe('cssdiff', function() {
+describe('stylediff', function() {
     it('shoule diff plain css', function(done) {
         test('styles',done);
 

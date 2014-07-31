@@ -1,6 +1,8 @@
 var _ = require('lodash'),
     hash = require('es-hash'),
     css = require('css');
+    opts = {};
+
 
 
 /**
@@ -216,50 +218,40 @@ function compareRules(rules, interectionKeys, groupFunc) {
  * compare multiple stylesheet strings and generate diff.
  * Diff consists of all css rules in first stylesheet which do not exist in any other stylesheet
  *
- * @param {string} stylesheets
- * @param {object} options
- * @param {cb} options
- *
+ * @param {string} mainCss Main stylesheet
+ * @param {string} compareCss Stylesheet to compare
+ * @param {object} options Options object
+ * @param {function} cb Callback function
  */
-function stylediff() {
-    var args = Array.prototype.slice.call(arguments);
-        cb = typeof _.last(args) === 'function' ? args.pop() : undefined,
-        options= _.isObject(_.last(args)) ? args.pop() : {},
-        mainCss = args.shift();
+function stylediff(mainCss, compareCss, options, cb) {
 
-
-    // return main css if there is nothing to compare with
-    if (!args.length) {
-        return mainCss;
+    if (_.isFunction(options)) {
+        cb = options;
+    } else {
+        opts = _.defaults(opts,options);
     }
+
 
     var main = css.parse(mainCss);
+    var compare = css.parse(compareCss);
 
-    // loop compare css
-    while (args.length) {
-        var compare = css.parse(args.shift());
-        var compareSelectors = buildCompare(compare.stylesheet.rules);
-        var compareSelectorKeys = _.keys(compareSelectors);
-        var getGroupedDiffDeclarations = getGroupedDeclarationDiffFunction(getDeclarationDiffFunction(compareSelectors));
+    var compareSelectors = buildCompare(compare.stylesheet.rules);
+    var compareSelectorKeys = _.keys(compareSelectors);
+    var getGroupedDiffDeclarations = getGroupedDeclarationDiffFunction(getDeclarationDiffFunction(compareSelectors));
 
-        main.stylesheet.rules = compareRules(main.stylesheet.rules, compareSelectorKeys, getGroupedDiffDeclarations);
-    }
+    main.stylesheet.rules = compareRules(main.stylesheet.rules, compareSelectorKeys, getGroupedDiffDeclarations);
+
 
 
 
     try {
         var out = css.stringify(main);
-        if (cb) {
-            cb(null, out);
-        } else {
-            return out;
-        }
+        cb(null, out);
+
 
     } catch (err) {
         cb(err);
     }
-
-
 }
 
 
