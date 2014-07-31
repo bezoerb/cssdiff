@@ -59,6 +59,10 @@ describe('cssdiff', function() {
         test('multiple',done);
     });
 
+    it('should correctly diff css with multiple declarations witzh different values', function(done) {
+        test('comments',done);
+    });
+
     it('should correctly diff minimal stripped bootstrap', function(done) {
         test('all',done);
     });
