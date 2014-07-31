@@ -32,10 +32,11 @@ function test(basename,done) {
     var expected = getExpected(basename);
     diff(basename,function(err,out){
         if (err) {
-            assert.fail(err);
+            console.log(err);
+            assert.fail();
         }
 
-        assert.strictEqual(out,expected);
+        assert.strictEqual(out,expected, 'Stylesheets do not match');
 
         done();
     });
@@ -66,5 +67,15 @@ describe('stylediff', function() {
     it('should strip of complete bootstrap css except unsupported elements like comments, fontfacem & keyframe.', function(done) {
         this.timeout(10000);
         test('all',done);
+    });
+
+    it('should remove some of foundation css', function(done) {
+        this.timeout(10000);
+        test('foundation',done);
+    });
+
+    it('should remove some more of foundation.min css', function(done) {
+        this.timeout(10000);
+        test('foundation.min',done);
     });
 });
