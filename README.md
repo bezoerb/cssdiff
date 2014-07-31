@@ -1,6 +1,6 @@
 # stylediff
 
-Computes the difference of stylesheets at parse tree level to generate a \"diff\" stylesheet.
+Computes the difference of stylesheets at parse tree level to generate a "diff" stylesheet.
 
 
 [![build status](https://secure.travis-ci.org/bezoerb/stylediff.svg)](http://travis-ci.org/bezoerb/stylediff)
