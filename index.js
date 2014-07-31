@@ -130,56 +130,35 @@ function getGroupedDeclarationDiffFunction(compareFunc) {
 function buildCompare(rules) {
     return _.chain(rules)
         .filter(function (rule) {
-            return rule.type && rule.type === 'rule';
+            return rule.type && rule.type === 'rule' || rule.type === 'media';
         })
         .reduce(function(result, rule) {
-            var prefix = getPrefix(rule);
-            var declarations = _.chain(rule.declarations)
-                .filter(function(declaration) {
-                    return declaration.type === 'declaration';
-                })
-                .reduce(function(result, declaration) {
-                    result[declaration.property] = declaration.value;
-                    return result;
-                },{})
-                .value();
+            if (rule.type === 'rule') {
+                var prefix = getPrefix(rule);
+                var declarations = _.chain(rule.declarations)
+                    .filter(function(declaration) {
+                        return declaration.type === 'declaration';
+                    })
+                    .reduce(function(result, declaration) {
+                        result[declaration.property] = declaration.value;
+                        return result;
+                    },{})
+                    .value();
 
-            _.forEach(rule.selectors,function(selector){
-                result[prefix+selector] = _.assign(result[prefix+selector] || {}, declarations);;
-            });
+                _.forEach(rule.selectors,function(selector){
+                    result[prefix+selector] = _.assign(result[prefix+selector] || {}, declarations);;
+                });
+            } else if (rule.hasOwnProperty('rules')) {
+                result = _.assign(result,buildCompare(rule.rules));
+            }
 
             return result;
         },{}).value();
 }
 
 
-/**
- * compare multiple stylesheet strings and generate diff.
- * Diff consists of all css rules in first stylesheet which do not exist in any other stylesheet
- */
-function cssdiff() {
-
-    var args = Array.prototype.slice.call(arguments);
-        mainCss = args.shift();
-
-    // return main css if there is nothing to compare with
-    if (!args.length) {
-        return mainCss;
-    }
-
-    var main = css.parse(mainCss);
-    var compare = css.parse(args.shift());
-
-
-    var compareSelectors = buildCompare(compare.stylesheet.rules);
-
-
-
-
-    var compareSelectorKeys = _.keys(compareSelectors);
-    var getGroupedDiffDeclarations = getGroupedDeclarationDiffFunction(getDeclarationDiffFunction(compareSelectors));
-
-    main.stylesheet.rules = _.chain(main.stylesheet.rules)
+function compareRules(rules, interectionKeys, groupFunc) {
+    return _.chain(rules)
         .reduce(function (result, rule) {
             // intersect with empty array when there is no selector e.g. for rule.type === 'comment'
 
@@ -187,15 +166,23 @@ function cssdiff() {
             var selectors = _.map(rule.selectors || [],function(selector){
                 return prefix + selector;
             });
-            var intersection = _.intersection(compareSelectorKeys, selectors);
+            var intersection = _.intersection(interectionKeys, selectors);
+
+            var ruleTest = rule.type === 'rule' && !intersection.length;
+            var typeTest = rule.type !== 'rule' && !rule.hasOwnProperty('rules');
 
             // no intersection between main stylesheet and compare stylesheet
-            if (rule.type !== 'rule' || !intersection.length) {
+            if (ruleTest && typeTest) {
                 result.push(rule);
 
-            // intersections found
+                // intersections found
+            } else if (rule.hasOwnProperty('rules')) {
+                rule.rules = compareRules(rule.rules,interectionKeys,groupFunc);
+                result.push(rule);
+
+                // intersections found
             } else {
-                var groupedDiffDeclarations = getGroupedDiffDeclarations(rule);
+                var groupedDiffDeclarations = groupFunc(rule);
 
                 _.forEach(groupedDiffDeclarations,function(group){
                     var clone = _.cloneDeep(rule);
@@ -209,9 +196,78 @@ function cssdiff() {
         },[])
         .uniq()
         .value();
+}
 
 
-    return css.stringify(main);
+/**
+ * compare multiple stylesheet strings and generate diff.
+ * Diff consists of all css rules in first stylesheet which do not exist in any other stylesheet
+ *
+ * @param {string} stylesheets
+ * @param {object} options
+ * @param {cb} options
+ *
+ */
+function cssdiff() {
+    var args = Array.prototype.slice.call(arguments);
+        cb = typeof _.last(args) === 'function' ? args.pop() : function(){},
+        options= _.isObject(_.last(args)) ? args.pop() : {},
+        mainCss = args.shift();
+
+
+    // return main css if there is nothing to compare with
+    if (!args.length) {
+        return mainCss;
+    }
+
+    var main = css.parse(mainCss);
+
+    // loop compare css
+    while (args.length) {
+        var compare = css.parse(args.shift());
+        var compareSelectors = buildCompare(compare.stylesheet.rules);
+        var compareSelectorKeys = _.keys(compareSelectors);
+        var getGroupedDiffDeclarations = getGroupedDeclarationDiffFunction(getDeclarationDiffFunction(compareSelectors));
+
+        main.stylesheet.rules = compareRules(main.stylesheet.rules, compareSelectorKeys, getGroupedDiffDeclarations);
+//        _.chain(main.stylesheet.rules)
+//            .reduce(function (result, rule) {
+//                // intersect with empty array when there is no selector e.g. for rule.type === 'comment'
+//
+//                var prefix = getPrefix(rule);
+//                var selectors = _.map(rule.selectors || [],function(selector){
+//                    return prefix + selector;
+//                });
+//                var intersection = _.intersection(compareSelectorKeys, selectors);
+//
+//                // no intersection between main stylesheet and compare stylesheet
+//                if (rule.type !== 'rule' || !intersection.length) {
+//                    result.push(rule);
+//
+//                // intersections found
+//                } else {
+//                    var groupedDiffDeclarations = getGroupedDiffDeclarations(rule);
+//
+//                    _.forEach(groupedDiffDeclarations,function(group){
+//                        var clone = _.cloneDeep(rule);
+//                        clone.selectors = group.selectors;
+//                        clone.declarations = group.declarations;
+//                        result.push(clone)
+//                    });
+//                }
+//
+//                return result;
+//            },[])
+//            .uniq()
+//            .value();
+    }
+
+    try {
+        var result = css.stringify(main);
+        cb(null, result);
+    } catch (err) {
+        cb(err);
+    }
 }
 
 
