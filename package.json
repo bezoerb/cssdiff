@@ -1,6 +1,6 @@
 {
   "name": "stylediff",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Computes the difference of stylesheets at parse tree level to generate a \"diff\" stylesheet.",
   "main": "index.js",
   "scripts": {
