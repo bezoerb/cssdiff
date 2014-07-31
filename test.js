@@ -11,11 +11,19 @@ var fs = require('fs');
 var cssdiff = require('./index.js');
 
 
-var css1 = fs.readFileSync('test/fixtures/styles_a1.css','utf8');
-var css2 = fs.readFileSync('test/fixtures/styles_a2.css','utf8');
+var css1 = fs.readFileSync('test/fixtures/all_1.css','utf8');
+var css2 = fs.readFileSync('test/fixtures/all_2.css','utf8');
 
 
-var diff = cssdiff(css1,css2);
+var diff = cssdiff(css1,css2, {}, function(err,out){
+    if (err) {
+        console.log(err);
+        return;
+    }
 
-fs.writeFileSync('test/fixtures/diff.css',diff);
+    console.log(out);
+    fs.writeFileSync('test/fixtures/diff.css',out);
+});
+
+
 

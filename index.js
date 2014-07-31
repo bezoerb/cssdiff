@@ -55,8 +55,12 @@ function getDeclarationDiffFunction(compare) {
         // return all declarations which are not inside compare
         return _.chain(declarations)
             .filter(function(declaration){
-                return !compare[key].hasOwnProperty(declaration.property) ||
-                    compare[key][declaration.property] !==  declaration.value;
+                var found =  _.find(compare[key],function(decl){
+                    return decl.property === declaration.property && decl.value === declaration.value;
+                });
+
+                return !found || found.type !== 'declaration';
+
             }).value();
     }
 }
@@ -139,14 +143,10 @@ function buildCompare(rules) {
                     .filter(function(declaration) {
                         return declaration.type === 'declaration';
                     })
-                    .reduce(function(result, declaration) {
-                        result[declaration.property] = declaration.value;
-                        return result;
-                    },{})
                     .value();
 
                 _.forEach(rule.selectors,function(selector){
-                    result[prefix+selector] = _.assign(result[prefix+selector] || {}, declarations);;
+                    result[prefix+selector] = (result[prefix+selector] || []).concat(declarations);
                 });
             } else if (rule.hasOwnProperty('rules')) {
                 result = _.assign(result,buildCompare(rule.rules));
@@ -178,8 +178,9 @@ function compareRules(rules, interectionKeys, groupFunc) {
                 // intersections found
             } else if (rule.hasOwnProperty('rules')) {
                 rule.rules = compareRules(rule.rules,interectionKeys,groupFunc);
-                result.push(rule);
-
+                if (_.filter(rule.rules,function(rule){ return rule.type !== 'comment'}).length) {
+                    result.push(rule);
+                }
                 // intersections found
             } else {
                 var groupedDiffDeclarations = groupFunc(rule);
@@ -210,7 +211,7 @@ function compareRules(rules, interectionKeys, groupFunc) {
  */
 function cssdiff() {
     var args = Array.prototype.slice.call(arguments);
-        cb = typeof _.last(args) === 'function' ? args.pop() : function(){},
+        cb = typeof _.last(args) === 'function' ? args.pop() : undefined,
         options= _.isObject(_.last(args)) ? args.pop() : {},
         mainCss = args.shift();
 
@@ -262,12 +263,21 @@ function cssdiff() {
 //            .value();
     }
 
+
+
     try {
-        var result = css.stringify(main);
-        cb(null, result);
+        var out = css.stringify(main);
+        if (cb) {
+            cb(null, out);
+        } else {
+            return out;
+        }
+
     } catch (err) {
         cb(err);
     }
+
+
 }
 
 
