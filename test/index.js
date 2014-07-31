@@ -55,7 +55,7 @@ describe('cssdiff', function() {
         test('media',done);
     });
 
-    it('should correctly diff minimal stripped bootstrap', function(done) {
+    it('should correctly diff css with multiple declarations witzh different values', function(done) {
         test('multiple',done);
     });
 

@@ -231,36 +231,6 @@ function cssdiff() {
         var getGroupedDiffDeclarations = getGroupedDeclarationDiffFunction(getDeclarationDiffFunction(compareSelectors));
 
         main.stylesheet.rules = compareRules(main.stylesheet.rules, compareSelectorKeys, getGroupedDiffDeclarations);
-//        _.chain(main.stylesheet.rules)
-//            .reduce(function (result, rule) {
-//                // intersect with empty array when there is no selector e.g. for rule.type === 'comment'
-//
-//                var prefix = getPrefix(rule);
-//                var selectors = _.map(rule.selectors || [],function(selector){
-//                    return prefix + selector;
-//                });
-//                var intersection = _.intersection(compareSelectorKeys, selectors);
-//
-//                // no intersection between main stylesheet and compare stylesheet
-//                if (rule.type !== 'rule' || !intersection.length) {
-//                    result.push(rule);
-//
-//                // intersections found
-//                } else {
-//                    var groupedDiffDeclarations = getGroupedDiffDeclarations(rule);
-//
-//                    _.forEach(groupedDiffDeclarations,function(group){
-//                        var clone = _.cloneDeep(rule);
-//                        clone.selectors = group.selectors;
-//                        clone.declarations = group.declarations;
-//                        result.push(clone)
-//                    });
-//                }
-//
-//                return result;
-//            },[])
-//            .uniq()
-//            .value();
     }
 
 

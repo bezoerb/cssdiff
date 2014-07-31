@@ -1,0 +1,15 @@
+@media print {
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+}
+
+abbr[title],
+abbr[data-original-title] {
+    cursor: help;
+    border-bottom: 1px dotted #999;
+}
+
+abbr[title] {
+    border-bottom: 1px dotted;
+}
