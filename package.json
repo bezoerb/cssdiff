@@ -1,22 +1,22 @@
 {
-  "name": "cssdiff",
+  "name": "stylediff",
   "version": "0.0.3",
-  "description": "Generate diff of multiple CSS files",
+  "description": "Computes the difference of stylesheets at parse tree level to generate a \"diff\" stylesheet.",
   "main": "index.js",
   "scripts": {
     "test": "node_modules/.bin/grunt ci"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/bezoerb/cssdiff"
+    "url": "https://github.com/bezoerb/stylediff"
   },
   "keywords": [
-    "css diff compare"
+    "critical-path css diff stylesheet"
   ],
   "author": "Ben Zörb <ben@sommerlaune.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bezoerb/cssdiff/issues"
+    "url": "https://github.com/bezoerb/stylediff/issues"
   },
   "dependencies": {
     "css": "^2.0.0",

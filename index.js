@@ -221,7 +221,7 @@ function compareRules(rules, interectionKeys, groupFunc) {
  * @param {cb} options
  *
  */
-function cssdiff() {
+function stylediff() {
     var args = Array.prototype.slice.call(arguments);
         cb = typeof _.last(args) === 'function' ? args.pop() : undefined,
         options= _.isObject(_.last(args)) ? args.pop() : {},
@@ -263,4 +263,4 @@ function cssdiff() {
 }
 
 
-module.exports = cssdiff;
+module.exports = stylediff;
