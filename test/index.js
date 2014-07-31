@@ -63,7 +63,8 @@ describe('cssdiff', function() {
         test('comments',done);
     });
 
-    it('should correctly diff minimal stripped bootstrap', function(done) {
+    it('should strip of complete bootstrap css except unsupported elements like comments, fontfacem & keyframe.', function(done) {
+        this.timeout(10000);
         test('all',done);
     });
 });
