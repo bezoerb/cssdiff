@@ -1,40 +1,40 @@
+'use strict';
+
 var _ = require('lodash'),
     hash = require('es-hash'),
-    css = require('css');
+    css = require('css'),
     opts = {};
 
 
 
 /**
- * Build prefix
+ * Build prefix string from selector hierarchy
+ * e.g. prefix with media...
  * @param rule
  * @returns {string}
  */
 function getPrefix(rule) {
-
     var prefixes = [];
 
-
+    // add parent prefixes if applicable
     if (rule.parent) {
         var parentPrefix = getPrefix(rule.parent);
-
         if (parentPrefix) {
             prefixes.push(parentPrefix);
         }
     }
 
-    if (rule.type !== 'rule') {
-        prefixes.push(rule.type);
-    }
+    // add type
+    prefixes.push(rule.type);
 
+    // add type value
     if (rule.hasOwnProperty(rule.type) && _.isString(rule[rule.type])) {
         prefixes.push(rule[rule.type]);
     }
 
     var result = prefixes.join('-');
-
     if (rule.type === 'rule') {
-        result += ' '
+        result += ' ';
     }
 
     return result;
@@ -64,7 +64,7 @@ function getDeclarationDiffFunction(compare) {
                 return !found || found.type !== 'declaration';
 
             }).value();
-    }
+    };
 }
 
 /**
@@ -134,16 +134,76 @@ function getGroupedDeclarationDiffFunction(compareFunc) {
                     return decl.type !== 'comment';
                 }).length;
             }).value();
-    }
+    };
 }
 
+/**
+ * Compare rules of main stylesheet with generated compare structure and compute difference stylesheet
+ * Performs a non-destructive compare so all rules it can't handle will not be removed.
+ *
+ * @param rules
+ * @param interectionKeys
+ * @param groupFunc
+ * @returns {array} rules
+ */
+function compareRules(rules, interectionKeys, groupFunc) {
+    return _.chain(rules)
+        .reduce(function (result, rule) {
+            var prefix = getPrefix(rule);
+            var selectors = _.map(rule.selectors || [],function(selector){
+                return prefix + selector;
+            });
 
+            // first check if there is an intersection at selector level
+            var intersection = !!_.intersection(interectionKeys, selectors).length;
+            // rule with no intersection at selector level
+            var ruleTest = rule.type === 'rule' && !intersection;
+            // unsuppored rules -> keep as they are
+            var unsupportedRule = rule.type !== 'rule' && !rule.hasOwnProperty('rules');
+
+            // no intersection between main stylesheet and compare stylesheet or an unsupported rule type found
+            // just add to result set
+            if (ruleTest || unsupportedRule) {
+                result.push(rule);
+
+            // rule has child rules -> recursive call to compute child node diff
+            } else if (rule.hasOwnProperty('rules')) {
+                rule.rules = compareRules(rule.rules,interectionKeys,groupFunc);
+                // filter slectors where only a comment is left over
+                if (_.filter(rule.rules,function(rule){ return rule.type !== 'comment';}).length) {
+                    result.push(rule);
+                }
+            // intersections found
+            } else {
+                // compute grouped diff
+                var groupedDiffDeclarations = groupFunc(rule);
+                // add one rule for each group and append it to result
+                _.forEach(groupedDiffDeclarations,function(group){
+                    var clone = _.cloneDeep(rule);
+                    clone.selectors = group.selectors;
+                    clone.declarations = group.declarations;
+                    result.push(clone);
+                });
+            }
+
+            return result;
+        },[])
+        .value();
+}
+
+/**
+ * Build compare structure
+ * @param rules
+ * @returns {object}
+ */
 function buildCompare(rules) {
     return _.chain(rules)
+        // filter relevant rules
         .filter(function (rule) {
-            return rule.type && rule.type === 'rule' || rule.type === 'media';
+            return rule.type && rule.type === 'rule' || rule.hasOwnProperty('rules');
         })
         .reduce(function(result, rule) {
+            // we're on a leaf, collect declarations for this selector
             if (rule.type === 'rule') {
                 var prefix = getPrefix(rule);
                 var declarations = _.chain(rule.declarations)
@@ -155,9 +215,11 @@ function buildCompare(rules) {
                 _.forEach(rule.selectors,function(selector){
                     result[prefix+selector] = (result[prefix+selector] || []).concat(declarations);
                 });
+            // rule has child rules (e.g. rule is media query)
             } else if (rule.hasOwnProperty('rules')) {
+                // get compare structure for nore rules
                 var rules = buildCompare(rule.rules);
-
+                // flatten the structure
                 result = _.reduce(rules,function(res,declarations,key) {
                     res[key] = _.uniq((res[key] || []).concat(declarations));
                     return res;
@@ -167,52 +229,6 @@ function buildCompare(rules) {
             return result;
         },{}).value();
 }
-
-
-function compareRules(rules, interectionKeys, groupFunc) {
-    return _.chain(rules)
-        .reduce(function (result, rule) {
-            // intersect with empty array when there is no selector e.g. for rule.type === 'comment'
-
-            var prefix = getPrefix(rule);
-            var selectors = _.map(rule.selectors || [],function(selector){
-                return prefix + selector;
-            });
-            var intersection = !!_.intersection(interectionKeys, selectors).length;
-
-            // rule with no intersection
-            var ruleTest = rule.type === 'rule' && !intersection;
-            // unsuppored rules -> keep as they are
-            var unsupportedRule = rule.type !== 'rule' && !rule.hasOwnProperty('rules');
-
-            // no intersection between main stylesheet and compare stylesheet
-            if (ruleTest || unsupportedRule) {
-                result.push(rule);
-
-                // intersections found
-            } else if (rule.hasOwnProperty('rules')) {
-                rule.rules = compareRules(rule.rules,interectionKeys,groupFunc);
-                if (_.filter(rule.rules,function(rule){ return rule.type !== 'comment'}).length) {
-                    result.push(rule);
-                }
-                // intersections found
-            } else {
-                var groupedDiffDeclarations = groupFunc(rule);
-
-                _.forEach(groupedDiffDeclarations,function(group){
-                    var clone = _.cloneDeep(rule);
-                    clone.selectors = group.selectors;
-                    clone.declarations = group.declarations;
-                    result.push(clone)
-                });
-            }
-
-            return result;
-        },[])
-        .uniq()
-        .value();
-}
-
 
 /**
  * compare multiple stylesheet strings and generate diff.
@@ -224,30 +240,30 @@ function compareRules(rules, interectionKeys, groupFunc) {
  * @param {function} cb Callback function
  */
 function stylediff(mainCss, compareCss, options, cb) {
-
+    // optional options array -> set callback
     if (_.isFunction(options)) {
         cb = options;
     } else {
         opts = _.defaults(opts,options);
     }
 
-
-    var main = css.parse(mainCss);
-    var compare = css.parse(compareCss);
-
-    var compareSelectors = buildCompare(compare.stylesheet.rules);
-    var compareSelectorKeys = _.keys(compareSelectors);
-    var getGroupedDiffDeclarations = getGroupedDeclarationDiffFunction(getDeclarationDiffFunction(compareSelectors));
-
-    main.stylesheet.rules = compareRules(main.stylesheet.rules, compareSelectorKeys, getGroupedDiffDeclarations);
-
-
-
-
+    // parse stylesheets
     try {
+        var main = css.parse(mainCss);
+        var compare = css.parse(compareCss);
+
+        // build compare structure
+        var compareSelectors = buildCompare(compare.stylesheet.rules);
+        // generate selectors array for first intersection check
+        var compareSelectorKeys = _.keys(compareSelectors);
+        // generate function to compute grouped diff for rule
+        var getGroupedDiffDeclarations = getGroupedDeclarationDiffFunction(getDeclarationDiffFunction(compareSelectors));
+
+        // lets do the work
+        main.stylesheet.rules = compareRules(main.stylesheet.rules, compareSelectorKeys, getGroupedDiffDeclarations);
+
         var out = css.stringify(main);
         cb(null, out);
-
 
     } catch (err) {
         cb(err);

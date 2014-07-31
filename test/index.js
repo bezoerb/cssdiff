@@ -1,7 +1,7 @@
-/* global describe, it, before, grunt */
+/* global describe, it */
+'use strict';
 var stylediff = require('..'),
     fs = require('fs'),
-    expect = require('chai').expect,
     assert = require('chai').assert;
 
 /**
@@ -47,6 +47,7 @@ function getExpected(basename) {
 }
 
 describe('stylediff', function() {
+
     it('shoule diff plain css', function(done) {
         test('styles',done);
 
@@ -65,17 +66,14 @@ describe('stylediff', function() {
     });
 
     it('should strip of complete bootstrap css except unsupported elements like comments, fontfacem & keyframe.', function(done) {
-        this.timeout(10000);
         test('all',done);
     });
 
     it('should remove some of foundation css', function(done) {
-        this.timeout(10000);
         test('foundation',done);
     });
 
     it('should remove some more of foundation.min css', function(done) {
-        this.timeout(10000);
         test('foundation.min',done);
     });
 });
