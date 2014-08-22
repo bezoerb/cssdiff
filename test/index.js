@@ -2,6 +2,8 @@
 'use strict';
 var stylediff = require('..'),
     fs = require('fs'),
+    path = require('path'),
+    CleanCSS = require('clean-css'),
     assert = require('chai').assert;
 
 /**
@@ -11,7 +13,11 @@ var stylediff = require('..'),
  */
 
 function stripWhitespace(string) {
-    return string.replace(/[\r\n]+/mg,' ').replace(/\s+/gm,'');
+    return new CleanCSS({
+        keepBreaks: true,
+        processImport: false,
+        noRebase: true
+    }).minify(string.replace(/[\r\n]+/mg,' ').replace(/\s+/gm,''));
 }
 
 function diff(basename, cb) {
@@ -32,8 +38,7 @@ function test(basename,done) {
     var expected = getExpected(basename);
     diff(basename,function(err,out){
         if (err) {
-            console.log(err);
-            assert.fail();
+            throw err;
         }
 
         assert.strictEqual(out,expected, 'Stylesheets do not match');
@@ -48,7 +53,7 @@ function getExpected(basename) {
 
 describe('stylediff', function() {
 
-    it('shoule diff plain css', function(done) {
+    it('should diff plain css', function(done) {
         test('styles',done);
 
     });
@@ -63,6 +68,70 @@ describe('stylediff', function() {
 
     it('should correctly strip declarations with just comments', function(done) {
         test('comments',done);
+    });
+
+    it('should diff svg and inline svg', function(done) {
+        var expected = getExpected('svg');
+        var css1 = fs.readFileSync('test/fixtures/svg_1.css','utf8');
+        var css2 = fs.readFileSync('test/fixtures/svg_2.css','utf8');
+
+
+        stylediff(css1,css2, {cwd: path.resolve('test/fixtures')}, function(err,out) {
+            if (err) {
+                throw err;
+            }
+
+            assert.strictEqual(stripWhitespace(out),expected, 'Stylesheets do not match');
+            done();
+        });
+    });
+
+    it('should fail diff svg and inline svg in strict mode', function(done) {
+        var expected = fs.readFileSync('test/expected/svg_strict.css','utf8');
+        var css1 = fs.readFileSync('test/fixtures/svg_1.css','utf8');
+        var css2 = fs.readFileSync('test/fixtures/svg_2.css','utf8');
+
+
+        stylediff(css1,css2, {cwd: path.resolve('test/fixtures'), strict: true}, function(err,out) {
+            if (err) {
+                throw err;
+            }
+
+            assert.strictEqual(stripWhitespace(out),stripWhitespace(expected), 'Stylesheets do not match');
+            done();
+        });
+    });
+
+    it('should diff img and base64 img', function(done) {
+        var expected = getExpected('base64');
+        var css1 = fs.readFileSync('test/fixtures/base64_1.css','utf8');
+        var css2 = fs.readFileSync('test/fixtures/base64_2.css','utf8');
+
+
+        stylediff(css1,css2, {cwd: path.resolve('test/fixtures')}, function(err,out) {
+            if (err) {
+                throw err;
+            }
+
+            assert.strictEqual(stripWhitespace(out),expected, 'Stylesheets do not match');
+            done();
+        });
+    });
+
+    it('should fail diff img and base64 img in strict mode', function(done) {
+        var expected = fs.readFileSync('test/expected/base64_strict.css','utf8');
+        var css1 = fs.readFileSync('test/fixtures/base64_1.css','utf8');
+        var css2 = fs.readFileSync('test/fixtures/base64_2.css','utf8');
+
+
+        stylediff(css1,css2, {cwd: path.resolve('test/fixtures'), strict: true}, function(err,out) {
+            if (err) {
+                throw err;
+            }
+
+            assert.strictEqual(stripWhitespace(out),stripWhitespace(expected), 'Stylesheets do not match');
+            done();
+        });
     });
 
     it('should strip of complete bootstrap css except unsupported elements like comments, fontfacem & keyframe.', function(done) {

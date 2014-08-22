@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.4, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="45px" height="12px" viewBox="0 0 45 12" enable-background="new 0 0 45 12" xml:space="preserve">
+<font horiz-adv-x="1000">
+<!-- Copyright 1992, 1994, 1997, 2000, 2004 Adobe Systems Incorporated. All rights reserved. Myriad is either a registered trademark or a trademark of Adobe Systems Incorporated in the United States and/or other countries. -->
+<font-face font-family="MyriadPro-Regular" units-per-em="1000" underline-position="-100" underline-thickness="50"/>
+<missing-glyph horiz-adv-x="500" d="M0,0l500,0l0,700l-500,0M250,395l-170,255l340,0M280,350l170,255l0,-510M80,50l170,255l170,-255M50,605l170,-255l-170,-255z"/>
+<glyph unicode="T" horiz-adv-x="497" d="M204,0l88,0l0,600l206,0l0,74l-499,0l0,-74l205,0z"/>
+<glyph unicode="e" horiz-adv-x="501" d="M462,226C463,235 465,249 465,267C465,356 423,495 265,495C124,495 38,380 38,234C38,88 127,-10 276,-10C353,-10 406,6 437,20l-15,63C389,69 351,58 288,58C200,58 124,107 122,226M123,289C130,350 169,432 258,432C357,432 381,345 380,289z"/>
+<glyph unicode="s" horiz-adv-x="396" d="M39,23C73,3 122,-10 175,-10C290,-10 356,50 356,135C356,207 313,249 229,281C166,305 137,323 137,363C137,399 166,429 218,429C263,429 298,413 317,401l22,64C312,481 269,495 220,495C116,495 53,431 53,353C53,295 94,247 181,216C246,192 271,169 271,127C271,87 241,55 177,55C133,55 87,73 61,90z"/>
+<glyph unicode="t" horiz-adv-x="331" d="M93,600l0,-116l-75,0l0,-67l75,0l0,-264C93,96 102,53 127,27C148,3 181,-10 222,-10C256,-10 283,-5 300,2l-4,66C285,65 268,62 245,62C196,62 179,96 179,156l0,261l126,0l0,67l-126,0l0,139z"/>
+</font>
+
+	<text transform="matrix(1 0 0 1 6.4653 9.2148)" font-family="MyriadPro-Regular" font-size="12">Test</text>
+</svg>

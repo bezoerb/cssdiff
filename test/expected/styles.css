@@ -1,11 +1,11 @@
 .visible-print {
-    display: none !important;
+    display: none!important;
+}
+
+td.visible-print {
+    display: table-cell!important;
 }
 
 th.visible-print {
     color: green;
-}
-
-td.visible-print {
-    display: table-cell !important;
 }
