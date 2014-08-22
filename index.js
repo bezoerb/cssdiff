@@ -9,7 +9,7 @@ var _ = require('lodash'),
     fs = require('fs'),
     read = fs.readFileSync,
     opts = {
-        strict: false, // strict compare (compares base64 images to files if set to false)
+        strict: true, // strict compare (compares base64 images to files if set to false)
         cwd: process.cwd()
     };
 

@@ -76,7 +76,7 @@ describe('stylediff', function() {
         var css2 = fs.readFileSync('test/fixtures/svg_2.css','utf8');
 
 
-        stylediff(css1,css2, {cwd: path.resolve('test/fixtures')}, function(err,out) {
+        stylediff(css1,css2, {cwd: path.resolve('test/fixtures'), strict: false}, function(err,out) {
             if (err) {
                 throw err;
             }
@@ -92,7 +92,7 @@ describe('stylediff', function() {
         var css2 = fs.readFileSync('test/fixtures/svg_2.css','utf8');
 
 
-        stylediff(css1,css2, {cwd: path.resolve('test/fixtures'), strict: true}, function(err,out) {
+        stylediff(css1,css2, {cwd: path.resolve('test/fixtures')}, function(err,out) {
             if (err) {
                 throw err;
             }
@@ -108,7 +108,7 @@ describe('stylediff', function() {
         var css2 = fs.readFileSync('test/fixtures/base64_2.css','utf8');
 
 
-        stylediff(css1,css2, {cwd: path.resolve('test/fixtures')}, function(err,out) {
+        stylediff(css1,css2, {cwd: path.resolve('test/fixtures'), strict: false}, function(err,out) {
             if (err) {
                 throw err;
             }
@@ -124,7 +124,7 @@ describe('stylediff', function() {
         var css2 = fs.readFileSync('test/fixtures/base64_2.css','utf8');
 
 
-        stylediff(css1,css2, {cwd: path.resolve('test/fixtures'), strict: true}, function(err,out) {
+        stylediff(css1,css2, {cwd: path.resolve('test/fixtures')}, function(err,out) {
             if (err) {
                 throw err;
             }
