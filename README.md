@@ -13,7 +13,7 @@ This module is installed via npm:
 $ npm install stylediff --save-dev
 ```
 
-## Example Usage
+### Example Usage
 
 ``` js
 var stylediff = require('stylediff');
@@ -25,5 +25,47 @@ stylediff(css1,css2, function(err,out){
     fs.writeFileSync('test/fixtures/diff.css',out);
 });
 
-
 ```
+styles_a1.css:
+```css
+.visible-print {
+    display: none !important;
+}
+
+th.visible-print,
+td.visible-print {
+    display: table-cell !important;
+    color: green;
+}
+```
+styles_a2.css:
+```css
+.visible-print {
+    display: none !important;
+}
+
+td.visible-print {
+    color: green;
+}
+
+th.visible-print {
+    display: table-cell !important;
+}
+```
+result.css:
+```css
+td.visible-print {
+    display: table-cell!important;
+}
+
+th.visible-print {
+    color: green;
+}
+```
+
+### Options
+
+| Name    | Default         | Type          | Description   |
+| ------- | --------------- | ------------- | ------------- |
+| strict  | `true`          | `boolean`     | When set to `false` referenced images are compared to their inlined verions will be marked as equal declaration |
+| cwd     | `process.cwd()` | `string`      | Stylesheet directory - required when strict mode is `false` |
