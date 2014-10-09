@@ -2,6 +2,8 @@
 
 Computes the difference of stylesheets at parse tree level to generate a "diff" stylesheet.
 
+**Deprecated in favour of https://github.com/bevacqua/cave**
+
 
 [![build status](https://secure.travis-ci.org/bezoerb/stylediff.svg)](http://travis-ci.org/bezoerb/stylediff)
 
